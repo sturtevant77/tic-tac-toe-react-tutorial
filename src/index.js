@@ -6,7 +6,7 @@ function Square(props) {
   return (
     <button 
       className="square" 
-      onClick={props.onClick()}
+      onClick={props.onClick}
     >
       {props.value}
     </button>
@@ -59,6 +59,11 @@ class Game extends React.Component {
       ],
       stepNumber: 0,
       xIsNext: true,
+      colRowHistory: [
+        {
+        colRow: ['']
+        }
+      ],
     };
   }
   
@@ -66,6 +71,13 @@ class Game extends React.Component {
     const history = this.state.history.slice(0, this.state.stepNumber + 1);
     const current = history[history.length - 1];
     const squares = current.squares.slice();
+    let col = i;
+    col % 3 === 0 ? col = 1: col % 3 === 1 ? col=2 : col = 3;
+    let row = i;
+    row < 3 ? row = 1: row > 2 && row < 6 ? row = 2 : row = 3;
+    const colrow = this.state.colRowHistory.slice(0, this.state.stepNumber + 1);
+    const currentcolrow = '( col: '+ col +' , row: ' + row + ' )';
+    
     if (calculateWinner(squares) || squares[i]) {
       return;
     }
@@ -76,6 +88,9 @@ class Game extends React.Component {
       }]),
       stepNumber: history.length,
       xIsNext: !this.state.xIsNext,
+      colRowHistory: colrow.concat([{
+        colRow: currentcolrow
+      }]),
     });
   }
 
@@ -90,13 +105,15 @@ class Game extends React.Component {
     const history = this.state.history;
     const current = history[this.state.stepNumber];
     const winner = calculateWinner(current.squares);
+    const columnrow = this.state.colRowHistory;
+    
 
-    const moves = history.map((step, move) => {
+    const moves = history.map((step, move) => { //step here represents the squares arrays (which we don't actually use in the following function but move is the INDEX of the current "move" in history) So move will go from 0, 1, 2, 3 as history gets more items for map to map OVER
       const desc = move ?
-        'Go to move #' + move :
+        'Go to move #' + move + ' ' + columnrow[move].colRow:
         'Go to game start';
       return (
-        <li key={moves}>
+        <li key={move}>
           <button onClick={() => this.jumpTo(move)}>{desc}</button>
         </li>
       );
@@ -113,7 +130,7 @@ class Game extends React.Component {
         <div className="game-board">
           <Board
             squares={current.squares} 
-            onClick={(i) => this.handleClick(i)}
+            onClick={ i => this.handleClick(i)}
            />
         </div>
         <div className="game-info">
